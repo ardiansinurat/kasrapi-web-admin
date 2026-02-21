@@ -7,9 +7,9 @@ import * as z from "zod";
 import { Check, Loader2 } from "lucide-react";
 
 const onboardingSchema = z.object({
-    currency: z.string().default("IDR"),
-    useTables: z.boolean().default(true),
-    taxPercentage: z.number().min(0).max(100).default(0),
+    currency: z.string(),
+    useTables: z.boolean(),
+    taxPercentage: z.number().min(0).max(100),
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
@@ -57,8 +57,8 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({
                             type="button"
                             onClick={() => setValue("currency", curr)}
                             className={`relative flex flex-col items-center justify-center rounded-2xl border-2 p-6 transition-all ${watch("currency") === curr
-                                    ? "border-orange-600 bg-orange-50 text-orange-600"
-                                    : "border-neutral-200 bg-white text-neutral-400 hover:border-neutral-300"
+                                ? "border-orange-600 bg-orange-50 text-orange-600"
+                                : "border-neutral-200 bg-white text-neutral-400 hover:border-neutral-300"
                                 }`}
                         >
                             {watch("currency") === curr && (
@@ -114,8 +114,8 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({
                         type="number"
                         placeholder="0"
                         className={`w-full rounded-xl border px-4 py-4 text-xl font-bold outline-none transition-all focus:ring-2 ${errors.taxPercentage
-                                ? "border-red-500 focus:ring-red-100"
-                                : "border-neutral-200 focus:border-orange-600 focus:ring-orange-100"
+                            ? "border-red-500 focus:ring-red-100"
+                            : "border-neutral-200 focus:border-orange-600 focus:ring-orange-100"
                             }`}
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-neutral-400">

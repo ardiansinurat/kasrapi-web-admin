@@ -60,12 +60,12 @@ interface Product {
 // --- Schemas ---
 const productSchema = z.object({
     name: z.string().min(1, 'Nama produk wajib diisi'),
-    defaultPrice: z.coerce.number().min(0, 'Harga harus valid'),
+    defaultPrice: z.number().min(0, 'Harga harus valid'),
     categoryId: z.string().min(1, 'Kategori wajib dipilih'),
     description: z.string().optional(),
-    initialStock: z.coerce.number().min(0).optional(),
+    initialStock: z.number().min(0).optional(),
     image: z.string().optional(),
-    isActive: z.boolean().default(true),
+    isActive: z.boolean(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -390,7 +390,7 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProductFormValues>({
-        resolver: zodResolver(productSchema) as any,
+        resolver: zodResolver(productSchema),
         defaultValues: {
             name: product?.name || '',
             defaultPrice: product?.defaultPrice || 0,
@@ -485,7 +485,7 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
                                 <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xs font-black text-gray-300">Rp</span>
                                 <input
                                     type="number"
-                                    {...register('defaultPrice')}
+                                    {...register('defaultPrice', { valueAsNumber: true })}
                                     className="w-full pl-14 pr-6 py-4 rounded-2xl bg-brand-bg border border-gray-100 focus:bg-white focus:ring-4 focus:ring-coffee-dark/5 focus:border-coffee-dark outline-none transition-all text-sm font-bold text-coffee-dark"
                                 />
                             </div>
@@ -510,7 +510,7 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
                                 <label className="text-xs font-black text-coffee-dark uppercase tracking-widest ml-1">Stok Awal</label>
                                 <input
                                     type="number"
-                                    {...register('initialStock')}
+                                    {...register('initialStock', { valueAsNumber: true })}
                                     className="w-full px-6 py-4 rounded-2xl bg-brand-bg border border-gray-100 focus:bg-white focus:ring-4 focus:ring-coffee-dark/5 focus:border-coffee-dark outline-none transition-all text-sm font-bold text-coffee-dark"
                                 />
                                 <p className="text-[10px] text-gray-400 italic ml-1 mt-1">* Stok akan bertambah ke catatan inventaris secara otomatis.</p>
