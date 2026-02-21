@@ -7,6 +7,7 @@ import { toast } from 'sonner';
  */
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
+    withCredentials: true,
 });
 
 // Request interceptor: add Authorization header
