@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KasRapi Web Admin ☕
 
-## Getting Started
+> SaaS Point of Sales (POS) Modern & Minimalis untuk Pengelola Kafe Kekinian.
 
-First, run the development server:
+KasRapi adalah platform manajemen kafe komprehensif yang dirancang untuk membantu pemilik bisnis mengelola operasional harian dengan lebih tenang, efisien, dan modern. Dari manajemen inventaris hingga sistem kasir yang terintegrasi dengan pembayaran digital.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Multi-tenant Dashboard**: Kelola beberapa cabang toko dalam satu akun Juragan.
+- **Real-time Stock Tracking**: Pemantauan stok otomatis dengan indikator stok rendah.
+- **Advanced POS System**: Antarmuka kasir yang cepat, responsif, dan mudah digunakan.
+- **Midtrans Integration**: Mendukung pembayaran digital (QRIS, VA, E-Wallet) melalui Midtrans Snap.
+- **Hardened Security**: Implementasi idempotency keys untuk mencegah transaksi ganda dan enkripsi data sensitif.
+- **Responsive Design**: Optimal untuk penggunaan di tablet maupun desktop.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **UI Components**: [Lucide React](https://lucide.dev/) & Custom Premium UI
+- **Data Fetching**: [SWR](https://swr.vercel.app/) & [Axios](https://axios-http.com/)
+- **Validation**: [Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)
 
-## Learn More
+## 🚀 Getting Started
 
-To learn more about Next.js, take a look at the following resources:
+### Prerequisites
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Node.js 20+
+- Backend KasRapi yang sudah berjalan
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Installation
 
-## Deploy on Vercel
+1. Clone repositori:
+   ```bash
+   git clone https://github.com/your-username/kasrapi-web-admin.git
+   cd kasrapi-web-admin
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Install dependensi:
+   ```bash
+   npm install
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Konfigurasi Environment:
+   Buat file `.env.local` dan lengkapi variabel berikut:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:5000/api
+   NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=your_client_key
+   ```
+
+4. Jalankan aplikasi:
+   ```bash
+   npm run dev
+   ```
+
+## 📂 Project Structure
+
+- `src/app/`: Routing dan halaman utama (Dashboard, POS, Menu, Auth).
+- `src/components/`: Komponen UI yang reusable (Layout, Auth, POS).
+- `src/store/`: State management menggunakan Zustand (Auth Store, POS Store).
+- `src/lib/`: Utilitas, konfigurasi API, dan helper functions.
+- `src/hooks/`: Custom hooks untuk autentikasi dan fungsionalitas lainnya.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+Built with ❤️ for Indonesian Coffee Shop Owners.
