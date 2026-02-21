@@ -44,10 +44,20 @@ export default function RegisterPage() {
                 cafeName: data.cafeName
             });
 
-            toast.success(response.data.message || "Pendaftaran berhasil! Silakan cek email Anda.");
-            router.push("/login?registered=true");
+            // P1.1: STRICT NAVIGATION
+            // Only redirect if we get a definitive success status
+            if (response.status === 201 || response.status === 200) {
+                toast.success(response.data.message || "Pendaftaran berhasil! Silakan cek email Anda.");
+                router.push("/login?registered=true");
+            } else {
+                throw new Error("Pendaftaran gagal. Silakan periksa kembali data Anda.");
+            }
         } catch (error: any) {
-            toast.error(error.response?.data?.error || "Gagal melakukan pendaftaran. Silakan coba lagi.");
+            // P1.2: PREVENT REDIRECT ON ERROR
+            // Error handling is now safe because the axios interceptor avoids redirects for /register
+            const errorMessage = error.response?.data?.error || error.message || "Gagal melakukan pendaftaran. Silakan coba lagi.";
+            toast.error(errorMessage);
+            console.error("Registration Error:", error);
         } finally {
             setIsLoading(false);
         }
