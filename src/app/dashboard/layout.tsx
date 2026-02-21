@@ -1,11 +1,14 @@
 "use client";
 
 import Sidebar from '@/components/layout/Sidebar';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/layout/ProtectedRoute';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, Bell, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import Script from 'next/script';
+import { clsx } from 'clsx';
+import PageTransition from '@/components/layout/PageTransition';
 
 export default function DashboardLayout({
     children,
@@ -63,10 +66,14 @@ export default function DashboardLayout({
                                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Signed in as</p>
                                             <p className="text-sm font-black text-coffee-dark truncate">{user?.email}</p>
                                         </div>
-                                        <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-coffee-dark hover:bg-gray-50 transition-colors">
+                                        <Link
+                                            href="/dashboard/profile"
+                                            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-coffee-dark hover:bg-gray-50 transition-colors"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
                                             <User size={18} className="text-gray-400" />
                                             Profile Settings
-                                        </button>
+                                        </Link>
                                         <button
                                             onClick={() => logout()}
                                             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
@@ -82,7 +89,9 @@ export default function DashboardLayout({
 
                     {/* Content Area */}
                     <main className="flex-1 overflow-y-auto p-8 lg:p-12">
-                        {children}
+                        <PageTransition>
+                            {children}
+                        </PageTransition>
                     </main>
                 </div>
 
@@ -94,5 +103,3 @@ export default function DashboardLayout({
         </ProtectedRoute>
     );
 }
-
-import { clsx } from 'clsx';

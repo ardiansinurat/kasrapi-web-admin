@@ -6,7 +6,7 @@ import { toast } from 'sonner';
  * Centralized API Client
  */
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 // Request interceptor: add Authorization header

@@ -13,6 +13,17 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
+import { useAuth } from '@/hooks/useAuth';
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip
+} from 'recharts';
+import React from 'react'; // Added React import for useMemo
 
 // Types
 interface DashboardStats {
@@ -24,7 +35,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
     // Mocking data for now as per "Placeholder data" requirement
-    const { data: stats, isLoading } = useSWR<DashboardStats>('/admin/dashboard/summary', {
+    const { data: stats } = useSWR<DashboardStats>('/admin/dashboard/summary', {
         fallbackData: {
             totalSalesToday: 0,
             activeOrders: 0,
@@ -33,6 +44,25 @@ export default function DashboardPage() {
         },
         refreshInterval: 10000
     });
+
+    const { store } = useAuth();
+
+    const { data: chartData, isLoading: isLoadingChart } = useSWR<any[]>(
+        store?.id ? `/reports/monthly-breakdown?storeId=${store.id}` : null
+    );
+
+    // Process last 7 days for the Area Chart
+    const performanceData = React.useMemo(() => {
+        if (!chartData) return [];
+        // Get today's day number (1-indexed matching the breakdown indices)
+        const today = new Date().getUTCDate();
+        // Take 7 days including today
+        const start = Math.max(0, today - 7);
+        return chartData.slice(start, today).map(item => ({
+            name: new Date(item.date).toLocaleDateString('id-ID', { weekday: 'short' }),
+            sales: item.totalIn
+        }));
+    }, [chartData]);
 
     return (
         <div className="space-y-12 pb-12 animate-in fade-in duration-700">
@@ -87,6 +117,70 @@ export default function DashboardPage() {
                         icon={<ShoppingBag className="text-coffee-dark" size={24} />}
                         description="Product units sold"
                     />
+                </div>
+            </section>
+
+            {/* Sales Trend Chart */}
+            <section className="animate-in slide-in-from-bottom-6 duration-1000 delay-300">
+                <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/50">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+                        <div>
+                            <h3 className="text-2xl font-black text-coffee-dark tracking-tighter">Sales Performance</h3>
+                            <p className="text-gray-400 text-sm font-medium">Tren pendapatan dalam 7 hari terakhir.</p>
+                        </div>
+                        <div className="flex bg-brand-bg p-1.5 rounded-2xl border border-gray-100">
+                            <span className="px-5 py-2 bg-white rounded-xl shadow-sm text-xs font-black text-coffee-dark uppercase tracking-widest">7 Hari</span>
+                        </div>
+                    </div>
+
+                    <div className="h-[350px] w-full">
+                        {isLoadingChart ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-4">
+                                <BarChart3 className="animate-bounce" size={32} />
+                                <p className="text-xs font-black uppercase tracking-widest italic">Menghitung data...</p>
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3C2A21" stopOpacity={0.15} />
+                                            <stop offset="95%" stopColor="#3C2A21" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                    <XAxis
+                                        dataKey="name"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                        tickFormatter={(value) => `Rp ${value >= 1000 ? (value / 1000) + 'k' : value}`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '1.2rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                                        itemStyle={{ color: '#3C2A21', fontWeight: 900, fontSize: '12px' }}
+                                        labelStyle={{ color: '#94A3B8', fontWeight: 700, fontSize: '10px', marginBottom: '4px', textTransform: 'uppercase' }}
+                                        formatter={(value: any) => [`Rp ${value.toLocaleString()}`, 'Penjualan']}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="sales"
+                                        stroke="#3C2A21"
+                                        strokeWidth={4}
+                                        fillOpacity={1}
+                                        fill="url(#colorSales)"
+                                        animationDuration={2000}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
                 </div>
             </section>
 

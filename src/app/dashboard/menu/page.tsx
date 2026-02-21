@@ -26,8 +26,10 @@ import {
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generateId } from '@/lib/utils';
+import { generateId, isValidImageUrl } from '@/lib/utils';
 import { clsx } from 'clsx';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import EmptyState from "@/components/ui/EmptyState";
 
 // --- Types ---
 interface Category {
@@ -64,7 +66,9 @@ const productSchema = z.object({
     categoryId: z.string().min(1, 'Kategori wajib dipilih'),
     description: z.string().optional(),
     initialStock: z.number().min(0).optional(),
-    image: z.string().optional(),
+    image: z.string().optional().refine(val => !val || isValidImageUrl(val), {
+        message: 'URL gambar tidak valid atau tidak didukung (.jpg, .png, .webp)'
+    }),
     isActive: z.boolean(),
 });
 
@@ -244,11 +248,21 @@ function ProductList({ products, isLoading, onAdd, onEdit, searchTerm, setSearch
                         <tbody className="divide-y divide-gray-50">
                             {products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-8 py-20 text-center">
-                                        <div className="flex flex-col items-center gap-4 text-gray-300">
-                                            <Coffee size={48} strokeWidth={1} />
-                                            <p className="text-sm font-bold italic uppercase tracking-widest">Belum ada produk</p>
-                                        </div>
+                                    <td colSpan={5}>
+                                        <EmptyState
+                                            icon={Coffee}
+                                            title="Menu Masih Kosong"
+                                            description="Kafe Anda belum memiliki produk. Mulai tambahkan menu spesial Anda sekarang!"
+                                            action={
+                                                <button
+                                                    onClick={onAdd}
+                                                    className="flex items-center gap-2 px-6 py-3 bg-coffee-dark text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-coffee-dark/20 hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    <Plus size={16} />
+                                                    Tambah Menu Pertama
+                                                </button>
+                                            }
+                                        />
                                     </td>
                                 </tr>
                             ) : (
@@ -261,11 +275,22 @@ function ProductList({ products, isLoading, onAdd, onEdit, searchTerm, setSearch
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-14 w-14 rounded-2xl bg-brand-bg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                                        {product.image ? (
-                                                            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                                                        ) : (
-                                                            <Coffee size={24} className="text-gray-200" />
-                                                        )}
+                                                        <AspectRatio ratio={1}>
+                                                            {product.image ? (
+                                                                <img
+                                                                    src={product.image}
+                                                                    alt={product.name}
+                                                                    className="h-full w-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=200&auto=format&fit=crop';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-brand-bg text-coffee-dark/20">
+                                                                    <Coffee size={24} strokeWidth={1.5} />
+                                                                </div>
+                                                            )}
+                                                        </AspectRatio>
                                                     </div>
                                                     <div className="space-y-0.5">
                                                         <div className="font-black text-coffee-dark tracking-tight">{product.name}</div>
@@ -389,7 +414,7 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
     const [idempotencyKey] = useState(generateId());
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProductFormValues>({
+    const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ProductFormValues>({
         resolver: zodResolver(productSchema),
         defaultValues: {
             name: product?.name || '',
@@ -401,6 +426,9 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
             isActive: product?.isActive ?? true
         }
     });
+
+    const imageUrl = watch('image');
+    const isImageValid = imageUrl ? isValidImageUrl(imageUrl) : false;
 
     const onSubmit = async (data: ProductFormValues) => {
         try {
@@ -517,13 +545,48 @@ function ProductModal({ isOpen, onClose, product, categories, storeId }: any) {
                             </div>
                         )}
 
-                        <div className="space-y-2 col-span-full">
-                            <label className="text-xs font-black text-coffee-dark uppercase tracking-widest ml-1">URL Foto Produk (Opsional)</label>
-                            <input
-                                {...register('image')}
-                                placeholder="https://image-url.com/..."
-                                className="w-full px-6 py-4 rounded-2xl bg-brand-bg border border-gray-100 focus:bg-white focus:ring-4 focus:ring-coffee-dark/5 focus:border-coffee-dark outline-none transition-all text-sm font-bold text-coffee-dark"
-                            />
+                        <div className="space-y-3 col-span-full">
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-xs font-black text-coffee-dark uppercase tracking-widest">URL Foto Produk (Opsional)</label>
+                                <span className="text-[10px] font-bold text-gray-400 italic">Format WebP direkomendasikan</span>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-6 items-start">
+                                <div className="flex-1 w-full space-y-2">
+                                    <input
+                                        {...register('image')}
+                                        placeholder="https://image-url.com/produk.webp"
+                                        className={clsx(
+                                            "w-full px-6 py-4 rounded-2xl bg-brand-bg border outline-none transition-all text-sm font-bold text-coffee-dark",
+                                            errors.image ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:bg-white focus:ring-4 focus:ring-coffee-dark/5 focus:border-coffee-dark"
+                                        )}
+                                    />
+                                    {errors.image && <p className="text-red-500 text-[10px] font-black uppercase ml-1 italic">{errors.image.message}</p>}
+                                    <p className="text-[9px] text-gray-400 ml-1">Gunakan link langsung (Direct Link) dari hosting gambar tepercaya.</p>
+                                </div>
+
+                                {imageUrl && (
+                                    <div className="w-24 h-24 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-brand-bg shrink-0 animate-in zoom-in-50 duration-300">
+                                        <AspectRatio ratio={1}>
+                                            {isImageValid ? (
+                                                <img
+                                                    src={imageUrl}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=200&auto=format&fit=crop';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-red-300 p-2 text-center">
+                                                    <AlertCircle size={20} />
+                                                    <span className="text-[8px] font-black leading-tight mt-1">INVALID URL</span>
+                                                </div>
+                                            )}
+                                        </AspectRatio>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

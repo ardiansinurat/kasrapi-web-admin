@@ -14,3 +14,17 @@ export const generateId = () => {
     // Fallback: combination of timestamp and random base36 string
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
 };
+
+/**
+ * Validates if a string is a valid image URL ending with common extensions.
+ */
+export const isValidImageUrl = (url: string) => {
+    if (!url) return false;
+    try {
+        const parsedUrl = new URL(url);
+        const pattern = /\.(jpg|jpeg|png|webp|avif|gif)$/i;
+        return pattern.test(parsedUrl.pathname);
+    } catch {
+        return false;
+    }
+};

@@ -5,31 +5,54 @@ import { useRouter } from "next/navigation";
 import OnboardingForm from "@/components/onboarding/OnboardingForm";
 import { Coffee } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
+import apiClient from "@/lib/api";
+import { toast } from "sonner";
 
 const OnboardingPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
-    const setStore = useAuthStore((state) => state.setStore);
-    const user = useAuthStore((state) => state.user);
+    const { store, user, setStore, setAuth } = useAuthStore();
 
     const handleOnboardingSubmit = async (data: any) => {
+        if (!store || !user) {
+            toast.error("Data sesi tidak ditemukan. Silakan login kembali.");
+            return;
+        }
+
         setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+            // 1. Update Store Settings
+            await apiClient.patch(`/stores/${store.id}/settings`, {
+                taxPercent: data.taxPercentage,
+                roundingRule: 'NONE',
+            });
 
-        // Update store state
-        setStore({
-            id: "store-1",
-            name: "Kafeku", // Ideally this comes from the user profile or recent registration
-            currency: data.currency,
-            useTables: data.useTables,
-            taxPercentage: data.taxPercentage,
-            isOnboarded: true,
-        });
+            // 2. Mark User as Onboarded
+            const userResponse = await apiClient.patch(`/users/${user.id}`, {
+                onboardingCompletedAt: new Date().toISOString()
+            });
 
-        setIsLoading(false);
-        // Finally, go to dashboard
-        router.push("/dashboard");
+            // 3. Update Global State
+            const updatedUser = userResponse.data;
+            setStore({
+                ...store,
+                currency: data.currency,
+                useTables: data.useTables,
+                taxPercentage: data.taxPercentage,
+                isOnboarded: true,
+            });
+
+            // Update user in authStore as well
+            const token = useAuthStore.getState().token;
+            if (token) setAuth(token, updatedUser);
+
+            toast.success("Konfigurasi kafe berhasil disimpan!");
+            router.push("/dashboard");
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Gagal menyimpan konfigurasi. Silakan coba lagi.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

@@ -11,7 +11,8 @@ import {
     X,
     Settings,
     ShoppingBag,
-    BarChart3
+    BarChart3,
+    Users
 } from 'lucide-react';
 import { useState } from 'react';
 import { clsx } from 'clsx';
@@ -20,15 +21,23 @@ const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Point of Sale', href: '/dashboard/pos', icon: ShoppingBag },
     { name: 'Menu Management', href: '/dashboard/menu', icon: Coffee },
-    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 }, // Placeholder for reports
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { name: 'Staff Management', href: '/dashboard/staff', icon: Users, roles: ['OWNER', 'MANAGER'] },
+    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, roles: ['OWNER', 'MANAGER'] },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['OWNER', 'MANAGER'] },
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Filter navigation based on user role
+    const filteredNavigation = navigation.filter(item => {
+        if (!item.roles) return true;
+        const userRole = user?.role?.toUpperCase() || 'KASIR';
+        return item.roles.includes(userRole);
+    });
 
     const handleLogout = () => {
         logout();
@@ -68,7 +77,7 @@ export default function Sidebar() {
 
                 {/* Navigation Links */}
                 <nav className="flex-1 overflow-y-auto pt-6 space-y-1">
-                    {navigation.map((item) => {
+                    {filteredNavigation.map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link

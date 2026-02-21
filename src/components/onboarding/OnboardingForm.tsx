@@ -9,13 +9,13 @@ import { Check, Loader2 } from "lucide-react";
 const onboardingSchema = z.object({
     currency: z.string(),
     useTables: z.boolean(),
-    taxPercentage: z.number().min(0).max(100),
+    taxPercentage: z.union([z.coerce.number().min(0).max(100), z.literal(""), z.undefined()]).transform(val => val === "" || val === undefined ? 0 : val),
 });
 
 type OnboardingFormValues = z.infer<typeof onboardingSchema>;
 
 interface OnboardingFormProps {
-    onSubmit: (data: OnboardingFormValues) => Promise<void>;
+    onSubmit: (data: any) => Promise<void>;
     isLoading: boolean;
 }
 
@@ -29,12 +29,12 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({
         setValue,
         watch,
         formState: { errors },
-    } = useForm<OnboardingFormValues>({
+    } = useForm<any>({
         resolver: zodResolver(onboardingSchema),
         defaultValues: {
             currency: "IDR",
             useTables: true,
-            taxPercentage: 0,
+            taxPercentage: "",
         },
     });
 
@@ -123,7 +123,7 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({
                     </div>
                 </div>
                 {errors.taxPercentage && (
-                    <p className="text-xs text-red-500">{errors.taxPercentage.message}</p>
+                    <p className="text-xs text-red-500">{errors.taxPercentage.message?.toString()}</p>
                 )}
             </div>
 

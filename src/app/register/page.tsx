@@ -8,6 +8,9 @@ import AuthSplitLayout from "@/components/auth/AuthSplitLayout";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api";
+import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth-store";
 
 const registerSchema = z.object({
     fullName: z.string().min(3, "Nama lengkap minimal 3 karakter"),
@@ -33,11 +36,21 @@ export default function RegisterPage() {
 
     const onSubmit = async (data: RegisterFormValues) => {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setIsLoading(false);
-        // Redirect to onboarding
-        router.push("/onboarding");
+        try {
+            const response = await apiClient.post("/auth/register", {
+                fullName: data.fullName,
+                email: data.email,
+                password: data.password,
+                cafeName: data.cafeName
+            });
+
+            toast.success(response.data.message || "Pendaftaran berhasil! Silakan cek email Anda.");
+            router.push("/login?registered=true");
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Gagal melakukan pendaftaran. Silakan coba lagi.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

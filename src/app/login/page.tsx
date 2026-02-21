@@ -9,6 +9,8 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
+import apiClient from "@/lib/api";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
     email: z.string().email("Email tidak valid"),
@@ -23,6 +25,7 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const setAuth = useAuthStore((state) => state.setAuth);
+    const setStore = useAuthStore((state) => state.setStore);
 
     const {
         register,
@@ -37,20 +40,37 @@ export default function LoginPage() {
 
     const onSubmit = async (data: LoginFormValues) => {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            const response = await apiClient.post("/auth/login", {
+                identifier: data.email,
+                password: data.password
+            });
 
-        // Mock successful login
-        setAuth("dummy-token", {
-            id: "1",
-            username: "John Doe",
-            email: data.email,
-            role: "owner"
-        });
+            const { token, user, businesses } = response.data;
 
-        setIsLoading(false);
-        // Redirect to dashboard
-        router.push("/dashboard");
+            // 1. Set User & Token
+            setAuth(token, user);
+
+            // 2. Set Store if exists
+            if (businesses && businesses.length > 0) {
+                const b = businesses[0];
+                setStore({
+                    id: b.id,
+                    name: b.name,
+                    currency: "IDR", // Default until settings fetched
+                    useTables: true,
+                    taxPercentage: 0,
+                    isOnboarded: !!user.onboardingCompletedAt
+                });
+            }
+
+            toast.success("Berhasil masuk!");
+            router.push("/dashboard");
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || "Gagal masuk. Silakan periksa email dan password Anda.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
