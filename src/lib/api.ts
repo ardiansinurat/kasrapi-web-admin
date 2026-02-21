@@ -11,8 +11,15 @@ const api = axios.create({
 
 // Request interceptor: add Authorization header
 api.interceptors.request.use((config) => {
+    // P1.1: EXPLICIT AUTH EXEMPTION
+    // Remove Authorization header for public auth routes to prevent 401s from strict servers
+    if (config.url?.includes('/auth/')) {
+        delete config.headers.Authorization;
+        return config;
+    }
+
     const token = useAuthStore.getState().token;
-    // P1.1: SECURE TOKEN INJECTION
+    // P1.2: SECURE TOKEN INJECTION
     // Ensure we don't send "Bearer undefined" or "Bearer null"
     if (token && token !== 'undefined' && token !== 'null') {
         config.headers.Authorization = `Bearer ${token}`;
